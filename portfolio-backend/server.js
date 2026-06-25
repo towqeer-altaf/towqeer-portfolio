@@ -19,7 +19,10 @@ const PORT = process.env.PORT || 5000;
 
 // Global Security and Request Parsing Middleware
 app.use(helmet());
-app.use(cors({ origin: process.env.ALLOWED_ORIGINS || '*' }));
+app.use(cors({ 
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true 
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
