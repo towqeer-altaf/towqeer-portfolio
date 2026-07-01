@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/client';
+import LoginForm from './LoginForm';
+import SocialLogin from './SocialLogin';
+import './Login.css';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -17,10 +20,10 @@ export default function Login() {
     try {
       // Sends 'username' and 'password' matching your backend schema
       const response = await API.post('/auth/login', { username, password });
-      
+
       if (response.data.token) {
         localStorage.setItem('adminToken', response.data.token);
-        navigate('/admin/dashboard'); 
+        navigate('/admin/dashboard');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid admin credentials');
@@ -29,122 +32,45 @@ export default function Login() {
     }
   };
 
+  const handleGoogleLogin = () => {
+    // Point this at your backend's OAuth entry point.
+    // Example: window.location.href = `${API_BASE_URL}/auth/google`;
+    window.location.href = '/api/auth/google';
+  };
+
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>Admin Portal</h2>
-        <p style={styles.subtitle}>Enter your credentials to manage your system.</p>
-        
-        {error && <div style={styles.error}>{error}</div>}
+    <div className="login-page">
+      <div className="login-page__glow login-page__glow--one" aria-hidden="true" />
+      <div className="login-page__glow login-page__glow--two" aria-hidden="true" />
 
-        <form onSubmit={handleLogin} style={styles.form}>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Username</label>
-            <input 
-              type="text" 
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              style={styles.input} 
-              placeholder="admin"
-              required 
-            />
+      <div className="login-card">
+        <span className="login-card__badge">Admin Portal</span>
+        <h1 className="login-card__title">Welcome back</h1>
+        <p className="login-card__subtitle">
+          Sign in to manage your portfolio's content and settings.
+        </p>
+
+        {error && (
+          <div className="login-alert" role="alert">
+            {error}
           </div>
+        )}
 
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Password</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={styles.input} 
-              placeholder="••••••••"
-              required 
-            />
-          </div>
+        <LoginForm
+          username={username}
+          password={password}
+          onUsernameChange={setUsername}
+          onPasswordChange={setPassword}
+          onSubmit={handleLogin}
+          loading={loading}
+        />
 
-          <button type="submit" disabled={loading} style={styles.button}>
-            {loading ? 'Authenticating...' : 'Sign In'}
-          </button>
-        </form>
+        <div className="login-divider">
+          <span>or</span>
+        </div>
+
+        <SocialLogin onGoogleClick={handleGoogleLogin} />
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '100vh',
-    backgroundColor: '#f9f9f9',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  },
-  card: {
-    background: '#ffffff',
-    padding: '40px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
-    width: '100%',
-    maxWidth: '400px',
-    textAlign: 'center',
-    border: '1px solid #eaeaea',
-  },
-  title: {
-    margin: '0 0 8px 0',
-    color: '#111111',
-    fontSize: '24px',
-    fontWeight: '600',
-  },
-  subtitle: {
-    margin: '0 0 24px 0',
-    color: '#666666',
-    fontSize: '14px',
-  },
-  form: {
-    textAlign: 'left',
-  },
-  inputGroup: {
-    marginBottom: '20px',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '6px',
-    fontSize: '12px',
-    fontWeight: '500',
-    color: '#444444',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  },
-  input: {
-    width: '100%',
-    padding: '12px',
-    border: '1px solid #e0e0e0',
-    borderRadius: '6px',
-    fontSize: '14px',
-    color: '#333333',
-    boxSizing: 'border-box',
-    outline: 'none',
-  },
-  button: {
-    width: '100%',
-    padding: '12px',
-    backgroundColor: '#111111',
-    color: '#ffffff',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    marginTop: '10px',
-  },
-  error: {
-    backgroundColor: '#fff5f5',
-    color: '#e53e3e',
-    padding: '10px',
-    borderRadius: '6px',
-    fontSize: '13px',
-    marginBottom: '20px',
-    border: '1px solid #fed7d7',
-  }
-};
