@@ -1,221 +1,152 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import api, { authHeader } from '../api/client';
+import { useCallback, useEffect, useState } from 'react';
+import api, { assetUrl, authHeader } from '../api/client';
 
-const RECORDS_PER_PAGE = 5;
+const emptyForm = { title: '', description: '', liveLink: '', githubLink: '', techStack: '' };
 
-/**
- * Owns everything related to projects: fetching the catalog, creating new
- * projects, deleting them, and client-side pagination. This is intentionally
- * self-contained — Dashboard.jsx doesn't need to know how projects work,
- * only that this section exists.
- */
 const ProjectSection = () => {
   const [projects, setProjects] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    liveLink: '',
-    githubLink: '',
-    techStack: '',
-  });
+  const [form, setForm] = useState(emptyForm);
   const [imageFile, setImageFile] = useState(null);
+  const [editingId, setEditingId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const fetchProjects = useCallback(async () => {
-    try {
-      const res = await api.get('/projects');
-      setProjects(res.data);
-    } catch (err) {
-      console.error('Error fetching projects:', err);
-    }
+    const { data } = await api.get('/projects');
+    setProjects(data);
   }, []);
 
-  // Projects are public data needed as soon as this section mounts.
   useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects]);
+    let active = true;
+    api.get('/projects')
+      .then(({ data }) => { if (active) setProjects(data); })
+      .catch((requestError) => {
+        if (active) setError(requestError.response?.data?.message || 'Could not load projects.');
+      });
+    return () => { active = false; };
+  }, []);
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (event) => {
+    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   };
 
-  const handleFileChange = (e) => {
-    setImageFile(e.target.files[0]);
+  const resetForm = () => {
+    setForm(emptyForm);
+    setImageFile(null);
+    setEditingId('');
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError('');
-
+    setLoading(true);
     const data = new FormData();
-    data.append('title', formData.title);
-    data.append('description', formData.description);
-    data.append('liveLink', formData.liveLink);
-    data.append('githubLink', formData.githubLink);
-
-    // Convert comma-separated string to array before sending
-    const techArray = formData.techStack.split(',').map((item) => item.trim());
-    data.append('techStack', JSON.stringify(techArray));
-
+    data.append('title', form.title);
+    data.append('description', form.description);
+    data.append('liveLink', form.liveLink);
+    data.append('githubLink', form.githubLink);
+    data.append('techStack', JSON.stringify(form.techStack.split(',').map((item) => item.trim()).filter(Boolean)));
     if (imageFile) data.append('image', imageFile);
 
     try {
-      await api.post('/projects', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          ...authHeader(),
-        },
-      });
-
-      setFormData({ title: '', description: '', liveLink: '', githubLink: '', techStack: '' });
-      setImageFile(null);
-      setCurrentPage(1);
-      fetchProjects();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create project');
+      if (editingId) {
+        await api.put(`/projects/${editingId}`, data, { headers: authHeader() });
+      } else {
+        await api.post('/projects', data, { headers: authHeader() });
+      }
+      resetForm();
+      event.target.reset();
+      await fetchProjects();
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || 'Could not save project.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this project?')) return;
+  const editProject = (project) => {
+    setEditingId(project._id);
+    setForm({
+      title: project.title || '',
+      description: project.description || '',
+      liveLink: project.liveLink || '',
+      githubLink: project.githubLink || '',
+      techStack: (project.techStack || []).join(', '),
+    });
+    setImageFile(null);
+  };
+
+  const deleteProject = async (project) => {
+    if (!window.confirm(`Delete "${project.title}"?`)) return;
+    setError('');
     try {
-      await api.delete(`/projects/${id}`, { headers: authHeader() });
-      fetchProjects();
-    } catch (err) {
-      alert('Failed to delete project');
+      await api.delete(`/projects/${project._id}`, { headers: authHeader() });
+      await fetchProjects();
+      if (editingId === project._id) resetForm();
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || 'Could not delete project.');
     }
   };
 
-  // Client-side pagination
-  const indexOfLastRecord = currentPage * RECORDS_PER_PAGE;
-  const indexOfFirstRecord = indexOfLastRecord - RECORDS_PER_PAGE;
-  const currentRecords = projects.slice(indexOfFirstRecord, indexOfLastRecord);
-  const totalPages = Math.ceil(projects.length / RECORDS_PER_PAGE);
-
   return (
-    <div className="projects-grid">
-      {/* Left: Project Creation Form */}
-      <div className="card">
-        <h2 className="section-title">Add Project</h2>
-        {error && <p className="form-error">{error}</p>}
-
-        <form onSubmit={handleSubmit} className="form">
-          <input
-            type="text"
-            name="title"
-            placeholder="Project Title"
-            value={formData.title}
-            onChange={handleInputChange}
-            required
-            className="input"
-          />
-          <textarea
-            name="description"
-            placeholder="Project Description"
-            value={formData.description}
-            onChange={handleInputChange}
-            required
-            className="textarea"
-          />
-          <input
-            type="text"
-            name="techStack"
-            placeholder="Tech Stack (comma separated: React, Node, Express)"
-            value={formData.techStack}
-            onChange={handleInputChange}
-            required
-            className="input"
-          />
-          <input
-            type="url"
-            name="liveLink"
-            placeholder="Live URL"
-            value={formData.liveLink}
-            onChange={handleInputChange}
-            className="input"
-          />
-          <input
-            type="url"
-            name="githubLink"
-            placeholder="GitHub URL"
-            value={formData.githubLink}
-            onChange={handleInputChange}
-            className="input"
-          />
-          <div>
-            <label className="field-label">Project Image</label>
-            <input type="file" accept="image/*" onChange={handleFileChange} required className="file-input" />
-          </div>
-
-          <button type="submit" disabled={loading} className="btn btn-primary btn-block">
-            {loading ? 'SAVING...' : 'SAVE PROJECT'}
-          </button>
-        </form>
-      </div>
-
-      {/* Right: Data Table Grid & Pagination */}
-      <div>
-        <h2 className="section-title">Project Catalog</h2>
-
-        <div className="project-list">
-          {currentRecords.length === 0 ? (
-            <p className="placeholder-text">No projects found.</p>
-          ) : (
-            currentRecords.map((project) => (
-              <div key={project._id} className="project-card">
-                <div>
-                  <h3 className="project-title">{project.title}</h3>
-                  <p className="project-description">{project.description}</p>
-                  <div className="tag-list">
-                    {Array.isArray(project.techStack) &&
-                      project.techStack.map((tech, i) => (
-                        <span key={i} className="tag">{tech}</span>
-                      ))}
-                  </div>
-                </div>
-
-                <div className="project-meta">
-                  <span className="project-date">
-                    {new Date(project.createdAt).toLocaleDateString()}
-                  </span>
-                  <button onClick={() => handleDelete(project._id)} className="btn-danger-outline">
-                    DELETE
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
+    <section className="admin-section">
+      <h2 className="section-title">{editingId ? 'Edit project' : 'Add project'}</h2>
+      {error && <p className="form-error" role="alert">{error}</p>}
+      <form className="admin-form card" onSubmit={handleSubmit}>
+        <div className="admin-form-grid">
+          <label className="admin-field">
+            <span>Project title</span>
+            <input name="title" value={form.title} onChange={handleChange} required />
+          </label>
+          <label className="admin-field">
+            <span>Technologies (comma separated)</span>
+            <input name="techStack" value={form.techStack} onChange={handleChange} />
+          </label>
+          <label className="admin-field">
+            <span>Live project URL</span>
+            <input name="liveLink" type="url" value={form.liveLink} onChange={handleChange} />
+          </label>
+          <label className="admin-field">
+            <span>Source code URL</span>
+            <input name="githubLink" type="url" value={form.githubLink} onChange={handleChange} />
+          </label>
         </div>
+        <label className="admin-field">
+          <span>Description</span>
+          <textarea name="description" rows="4" value={form.description} onChange={handleChange} required />
+        </label>
+        <label className="admin-field">
+          <span>Project image (JPEG or PNG, up to 5 MB)</span>
+          <input key={editingId || 'new-project'} type="file" accept="image/jpeg,image/png" onChange={(event) => setImageFile(event.target.files?.[0] || null)} />
+        </label>
+        <div className="admin-actions">
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'SAVING…' : editingId ? 'UPDATE PROJECT' : 'SAVE PROJECT'}
+          </button>
+          {editingId && <button type="button" className="btn btn-ghost" onClick={resetForm}>CANCEL</button>}
+        </div>
+      </form>
 
-        {totalPages > 1 && (
-          <div className="pagination">
-            <button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((prev) => prev - 1)}
-              className="pagination-btn"
-            >
-              ← PREV
-            </button>
-            <span className="pagination-status">
-              PAGE {currentPage} OF {totalPages}
-            </span>
-            <button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-              className="pagination-btn"
-            >
-              NEXT →
-            </button>
-          </div>
-        )}
+      <h2 className="section-title project-list-title">Published projects</h2>
+      <div className="project-list">
+        {projects.length ? projects.map((project) => (
+          <article className="project-card" key={project._id}>
+            <div>
+              <h3 className="project-title">{project.title}</h3>
+              <p className="project-description">{project.description}</p>
+              {project.imageUrl && <a href={assetUrl(project.imageUrl)} target="_blank" rel="noreferrer">View image</a>}
+              <div className="tag-list">
+                {(project.techStack || []).map((technology) => <span className="tag" key={technology}>{technology}</span>)}
+              </div>
+            </div>
+            <div className="project-meta">
+              <button type="button" className="btn btn-ghost" onClick={() => editProject(project)}>EDIT</button>
+              <button type="button" className="btn-danger-outline" onClick={() => deleteProject(project)}>DELETE</button>
+            </div>
+          </article>
+        )) : <p className="placeholder-text">No projects published yet.</p>}
       </div>
-    </div>
+    </section>
   );
 };
 

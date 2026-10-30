@@ -1,34 +1,27 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import ThemeToggle from './ThemeToggle';
 
-const navLinks = [
-  { label: 'Home', href: '#home' },
-  { label: 'Services', href: '#services' },
-  { label: 'Projects', href: '#projects' },
-  { label: 'Certifications', href: '#certifications' },
-  { label: 'Contact', href: '#contact' },
+const links = [
+  ['About', '#about'],
+  ['Services', '#services'],
+  ['Projects', '#projects'],
+  ['Experience', '#experience'],
+  ['Education', '#education'],
+  ['Certificates', '#certificates'],
+  ['Contact', '#contact'],
 ];
 
-const HomeNavbar = () => {
-  return (
-    <nav className="nav">
-      <span className="nav-logo">TA</span>
-
-      <div className="nav-links">
-        {navLinks.map((link) => (
-          <a key={link.label} href={link.href} className="nav-link">
-            {link.label}
-          </a>
-        ))}
-      </div>
-
-      <div className="nav-actions">
-        <ThemeToggle />
-        <Link to="/login" className="nav-admin">🔒 Admin</Link>
-      </div>
+const HomeNavbar = ({ name }) => (
+  <header className="portfolio-nav">
+    <a className="portfolio-brand" href="#home">
+      {name || 'Portfolio'}<span>.</span>
+    </a>
+    <nav aria-label="Portfolio sections">
+      {links.map(([label, href]) => (
+        <a key={href} href={href}>{label}</a>
+      ))}
+      <Link className="portfolio-admin-link" to="/login">Admin sign in</Link>
     </nav>
-  );
-};
+  </header>
+);
 
 export default HomeNavbar;

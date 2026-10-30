@@ -215,65 +215,6 @@
   }
 }
 
-.login-divider {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  color: var(--login-text-muted);
-  font-size: 12px;
-  margin: 22px 0;
-}
-
-.login-divider::before,
-.login-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--login-border);
-}
-
-.login-divider span {
-  padding: 0 12px;
-}
-
-.social-login {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.social-button {
-  width: 100%;
-  padding: 11px;
-  border-radius: var(--login-radius-md);
-  font-size: 14px;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
-}
-
-.social-button--google {
-  background: #ffffff;
-  color: var(--login-text-primary);
-  border: 1px solid var(--login-border);
-}
-
-.social-button--google:hover {
-  background: #faf9ff;
-  border-color: #cfc7e8;
-  transform: translateY(-1px);
-}
-
-.social-button:focus-visible {
-  outline: 2px solid var(--login-accent);
-  outline-offset: 2px;
-}
-
 @media (max-width: 420px) {
   .login-card {
     padding: 32px 24px;
@@ -283,7 +224,6 @@
 @media (prefers-reduced-motion: reduce) {
   .login-card,
   .login-button,
-  .social-button,
   .login-spinner {
     animation: none;
     transition: none;

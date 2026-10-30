@@ -23,6 +23,15 @@
   --transition: 150ms ease;
 }
 
+.admin-auth-check {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -54,10 +63,19 @@
   font-size: 1rem;
   letter-spacing: 0.02em;
   color: var(--color-text);
+  text-decoration: none;
+}
+
+.dashboard-brand span {
+  margin-left: 0.45rem;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 400;
 }
 
 .dashboard-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   background: var(--color-bg);
   padding: 0.3rem;
@@ -86,6 +104,92 @@
   color: var(--color-primary);
   font-weight: 600;
   box-shadow: var(--shadow-sm);
+}
+
+.dashboard-logout {
+  color: var(--color-danger);
+}
+
+.admin-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-section .section-title {
+  margin: 0.5rem 0;
+}
+
+.admin-help {
+  margin: 0 0 0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.admin-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.admin-field {
+  display: grid;
+  align-content: start;
+  gap: 0.45rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.admin-field input,
+.admin-field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.admin-field input:focus,
+.admin-field textarea:focus {
+  border-color: var(--color-primary);
+  outline: 2px solid rgb(79 70 229 / 12%);
+}
+
+.admin-field textarea {
+  min-height: 90px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.admin-field input[type="file"] {
+  background: var(--color-surface);
+}
+
+.admin-field a {
+  color: var(--color-primary);
+}
+
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.form-success {
+  margin: 0;
+  color: #15803d;
+}
+
+.project-list-title,
+.certificate-list-title {
+  margin-top: 2rem !important;
 }
 
 /* ---------- Main Layout ---------- */
@@ -118,6 +222,40 @@
 @media (max-width: 900px) {
   .projects-grid {
     grid-template-columns: 1fr;
+  }
+
+  @media (max-width: 650px) {
+    .dashboard-nav {
+      align-items: flex-start;
+      flex-direction: column;
+      padding: 1rem;
+    }
+
+    .dashboard-tabs {
+      width: 100%;
+    }
+
+    .dashboard-tab {
+      padding: 0.45rem 0.7rem;
+    }
+
+    .dashboard-main {
+      padding: 1.25rem 1rem;
+    }
+
+    .admin-form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .project-card {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .project-meta {
+      width: 100%;
+      justify-content: flex-end;
+    }
   }
 }
 

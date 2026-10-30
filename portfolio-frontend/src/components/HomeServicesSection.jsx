@@ -1,41 +1,21 @@
-import React from 'react';
-
-const services = [
-  {
-    tag: '<WebDev />',
-    title: 'Web development',
-    description: 'Building fast, responsive MERN-stack applications with scalable data models and tuned performance.',
-  },
-  {
-    tag: '<Freelance />',
-    title: 'Freelancing',
-    description: 'Shipping complete, production-ready systems independently, with clean architecture and fast turnarounds.',
-  },
-  {
-    tag: '<Design />',
-    title: 'Creative editing',
-    description: 'Refining visual assets and content to match clean, considered branding across every touchpoint.',
-  },
-];
-
-const HomeServicesSection = () => {
-  return (
-    <section className="section section--alt">
-      <div className="section-inner">
-        <p className="eyebrow">// capabilities</p>
-        <h2 className="section-title">What I build</h2>
-        <div className="services-grid">
-          {services.map((service) => (
-            <div className="service-card" key={service.title}>
-              <span className="tag service-tag">{service.tag}</span>
-              <h3>{service.title}</h3>
-              <p>{service.description}</p>
-            </div>
-          ))}
-        </div>
+const HomeServicesSection = ({ services = [] }) => (
+  <section className="portfolio-section section-muted" id="services">
+    <div className="section-heading">
+      <p className="eyebrow">What I do</p>
+      <h2>Services & capabilities</h2>
+    </div>
+    {services.length ? (
+      <div className="portfolio-grid">
+        {services.map((service) => (
+          <article className="portfolio-card" key={`${service.title}-${service.description}`}>
+            <span className="card-mark" aria-hidden="true">↗</span>
+            <h3>{service.title}</h3>
+            <p>{service.description}</p>
+          </article>
+        ))}
       </div>
-    </section>
-  );
-};
+    ) : <p className="section-copy">Services will appear here when added to the profile.</p>}
+  </section>
+);
 
 export default HomeServicesSection;

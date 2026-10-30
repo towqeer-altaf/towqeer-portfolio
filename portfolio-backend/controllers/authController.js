@@ -1,12 +1,19 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+exports.getAdminSession = (req, res) => {
+  res.json({ _id: req.user._id, username: req.user.username });
+};
+
 // @desc    Admin authentication & token generation
 // @route   POST /api/auth/login
 // @access  Public
 exports.loginAdmin = async (req, res) => {
   try {
     const { username, password } = req.body;
+    if (typeof username !== 'string' || typeof password !== 'string' || !username || !password) {
+      return res.status(400).json({ message: 'Username and password are required.' });
+    }
 
     const user = await User.findOne({ username });
     if (!user) {

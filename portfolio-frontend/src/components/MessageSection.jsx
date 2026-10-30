@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import api, { authHeader } from '../api/client';
 
 /**
@@ -9,23 +9,22 @@ import api, { authHeader } from '../api/client';
  */
 const MessageSection = () => {
   const [messages, setMessages] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const res = await api.get('/contact', { headers: authHeader() });
-        setMessages(res.data);
-      } catch (err) {
-        console.error('Error fetching messages:', err.response || err);
-      }
-    };
-
-    fetchMessages();
+    let active = true;
+    api.get('/contact', { headers: authHeader() })
+      .then(({ data }) => { if (active) setMessages(data); })
+      .catch((requestError) => {
+        if (active) setError(requestError.response?.data?.message || 'Could not load messages.');
+      });
+    return () => { active = false; };
   }, []);
 
   return (
     <section>
       <h2 className="section-title">Client Inquiries</h2>
+      {error && <p className="form-error" role="alert">{error}</p>}
       <div className="table-wrap">
         <table className="data-table">
           <thead>

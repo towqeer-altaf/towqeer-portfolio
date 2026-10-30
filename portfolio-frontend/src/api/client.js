@@ -1,16 +1,18 @@
 import axios from 'axios';
- 
-// Centralized Axios instance. All requests share the same base URL,
-// so components never hardcode 'http://localhost:5000' again.
+
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
 });
- 
-// Attaches the admin token fresh on every request (instead of each
-// component re-reading localStorage and rebuilding the header).
+
 export const authHeader = () => ({
-  Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
+  Authorization: `Bearer ${localStorage.getItem('adminToken') || ''}`,
 });
- 
+
+export const assetUrl = (fileUrl) => {
+  if (!fileUrl) return '';
+  if (/^https?:\/\//i.test(fileUrl)) return fileUrl;
+  return new URL(fileUrl, new URL(api.defaults.baseURL).origin).toString();
+};
+
 export default api;
  

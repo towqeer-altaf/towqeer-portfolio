@@ -1,16 +1,16 @@
-# React + Vite
+# Towqeer Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The public portfolio is built from independent React section components and reads profile details, projects, and certificates from the backend API. The admin dashboard lets you update your profile, manage projects and certificates, and access private documents and contact messages.
 
-Currently, two official plugins are available:
+## Run locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Start the backend by following `../portfolio-backend/README.md`.
+2. Install frontend dependencies with `npm install`.
+3. Optionally set `VITE_API_URL` to the backend API URL (defaults to `http://localhost:5000/api`).
+4. Run `npm run dev`.
 
-## React Compiler
+The public portfolio is at `/`, admin sign-in is at `/login`, and the dashboard is at `/admin/dashboard`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Production build
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Run `npm run build`, then serve the generated `dist/` directory with a static web server. Configure `VITE_API_URL` to point to the deployed backend before building.

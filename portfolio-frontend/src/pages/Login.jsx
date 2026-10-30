@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/client';
 import LoginForm from './LoginForm';
-import SocialLogin from './SocialLogin';
 import './Login.css';
 
 export default function Login() {
@@ -32,12 +31,6 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    // Point this at your backend's OAuth entry point.
-    // Example: window.location.href = `${API_BASE_URL}/auth/google`;
-    window.location.href = '/api/auth/google';
-  };
-
   return (
     <div className="login-page">
       <div className="login-page__glow login-page__glow--one" aria-hidden="true" />
@@ -65,11 +58,6 @@ export default function Login() {
           loading={loading}
         />
 
-        <div className="login-divider">
-          <span>or</span>
-        </div>
-
-        <SocialLogin onGoogleClick={handleGoogleLogin} />
       </div>
     </div>
   );

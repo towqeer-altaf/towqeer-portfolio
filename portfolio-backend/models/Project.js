@@ -6,7 +6,7 @@ const ProjectSchema = new mongoose.Schema({
   liveLink: { type: String },
   githubLink: { type: String },
   techStack: [{ type: String, required: true }],
-  imageUrl: { type: String, required: true } // Handled by Multer/Cloudinary
+  imageUrl: { type: String, default: '' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Project', ProjectSchema);

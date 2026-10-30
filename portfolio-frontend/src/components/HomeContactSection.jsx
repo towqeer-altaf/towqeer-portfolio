@@ -1,79 +1,70 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import api from '../api/client';
 
-const HomeContactSection = () => {
-  const [contactData, setContactData] = useState({ name: '', email: '', subject: '', message: '' });
+const HomeContactSection = ({ profile }) => {
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [status, setStatus] = useState({ message: '', error: false });
+  const [sending, setSending] = useState(false);
 
-  const handleChange = (field) => (e) => {
-    setContactData({ ...contactData, [field]: e.target.value });
+  const handleChange = (event) => {
+    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   };
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setStatus({ message: '', error: false });
+    setSending(true);
     try {
-      // Keys here must exactly match the ones the controller expects
-      await axios.post('http://localhost:5000/api/contact', contactData);
-      alert('Message sent successfully!');
-      setContactData({ name: '', email: '', subject: '', message: '' });
-    } catch (err) {
-      console.error(err);
+      await api.post('/contact', form);
+      setForm({ name: '', email: '', subject: '', message: '' });
+      setStatus({ message: 'Thanks for your message. I’ll be in touch soon.', error: false });
+    } catch (error) {
+      setStatus({
+        message: error.response?.data?.message || 'Your message could not be sent. Please try again later.',
+        error: true,
+      });
+    } finally {
+      setSending(false);
     }
   };
 
   return (
-    <section className="section" id="contact">
-      <div className="contact-inner">
-        <div className="contact-header">
-          <p className="eyebrow">$ contact --new</p>
-          <h2 className="section-title">Let's build something</h2>
+    <section className="portfolio-section contact-section" id="contact">
+      <div className="section-heading">
+        <p className="eyebrow">Have a project in mind?</p>
+        <h2>Let’s build something meaningful.</h2>
+        <p className="section-copy">Send a message to discuss a project, opportunity, or collaboration.</p>
+      </div>
+      <div className="contact-layout">
+        <div className="contact-details">
+          <h3>Get in touch</h3>
+          {profile.email && <a href={`mailto:${profile.email}`}>{profile.email}</a>}
+          {profile.phone && <a href={`tel:${profile.phone}`}>{profile.phone}</a>}
+          {profile.location && <p>{profile.location}</p>}
         </div>
-
-        <form className="contact-form" onSubmit={handleSendMessage}>
-          <div className="form-row">
-            <div className="field">
-              <label htmlFor="name">Name</label>
-              <input
-                id="name"
-                type="text"
-                required
-                value={contactData.name}
-                onChange={handleChange('name')}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={contactData.email}
-                onChange={handleChange('email')}
-              />
-            </div>
+        <form className="contact-form" onSubmit={handleSubmit}>
+          <div className="contact-fields">
+            <label>
+              Your name
+              <input name="name" value={form.name} onChange={handleChange} required maxLength={120} />
+            </label>
+            <label>
+              Your email
+              <input name="email" type="email" value={form.email} onChange={handleChange} required maxLength={254} />
+            </label>
           </div>
-
-          <div className="field">
-            <label htmlFor="subject">Subject</label>
-            <input
-              id="subject"
-              type="text"
-              required
-              value={contactData.subject}
-              onChange={handleChange('subject')}
-            />
-          </div>
-
-          <div className="field">
-            <label htmlFor="message">Message</label>
-            <textarea
-              id="message"
-              required
-              value={contactData.message}
-              onChange={handleChange('message')}
-            />
-          </div>
-
-          <button type="submit" className="submit-btn">&gt; send_message()</button>
+          <label>
+            Subject
+            <input name="subject" value={form.subject} onChange={handleChange} required maxLength={200} />
+          </label>
+          <label>
+            Message
+            <textarea name="message" value={form.message} onChange={handleChange} required maxLength={5000} rows="6" />
+          </label>
+          <button className="portfolio-button portfolio-button--primary" type="submit" disabled={sending}>
+            {sending ? 'Sending…' : 'Send message ↗'}
+          </button>
+          {status.message && <p className={status.error ? 'form-status form-status--error' : 'form-status'} role="status">{status.message}</p>}
         </form>
       </div>
     </section>

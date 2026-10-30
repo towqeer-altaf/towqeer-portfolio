@@ -1,23 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import ProjectSection from '../components/ProjectSection';
+import CertificateSection from '../components/CertificateSection';
 import DocumentSection from '../components/DocumentSection';
 import MessageSection from '../components/MessageSection';
 import ProfileSection from '../components/ProfileSection';
 import './Dashboard.css';
 
-const TABS = ['projects', 'messages', 'profile', 'documents'];
+const TABS = ['projects', 'certificates', 'profile', 'messages', 'documents'];
 
-/**
- * Dashboard is now just an orchestrator: it owns which tab is active and
- * persists that choice to localStorage, then renders the matching section.
- *
- * Each section fetches its own data when it mounts. Since React only
- * mounts the active tab's component, switching tabs naturally fetches
- * fresh data exactly when needed — no shared "activeTab === X" effects,
- * no redundant project fetches, no manual fetch-orchestration required.
- */
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('activeTab') || 'projects');
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState(() => {
+    const savedTab = localStorage.getItem('activeTab');
+    return TABS.includes(savedTab) ? savedTab : 'projects';
+  });
+
+  useEffect(() => {
+    if (!localStorage.getItem('adminToken')) navigate('/login', { replace: true });
+  }, [navigate]);
 
   useEffect(() => {
     localStorage.setItem('activeTab', activeTab);
@@ -26,7 +27,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <nav className="dashboard-nav">
-        <span className="dashboard-brand">ADMIN.PANEL</span>
+        <Link className="dashboard-brand" to="/">ADMIN.PANEL <span>· View portfolio</span></Link>
         <div className="dashboard-tabs">
           {TABS.map((tab) => (
             <button
@@ -37,11 +38,22 @@ const Dashboard = () => {
               {tab}
             </button>
           ))}
+          <button
+            type="button"
+            className="dashboard-tab dashboard-logout"
+            onClick={() => {
+              localStorage.removeItem('adminToken');
+              navigate('/login', { replace: true });
+            }}
+          >
+            log out
+          </button>
         </div>
       </nav>
 
       <main className="dashboard-main">
         {activeTab === 'projects' && <ProjectSection />}
+        {activeTab === 'certificates' && <CertificateSection />}
         {activeTab === 'messages' && <MessageSection />}
         {activeTab === 'profile' && <ProfileSection />}
         {activeTab === 'documents' && <DocumentSection />}

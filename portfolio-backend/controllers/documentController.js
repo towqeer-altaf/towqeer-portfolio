@@ -1,4 +1,6 @@
 const Document = require('../models/Document');
+const fs = require('fs/promises');
+const path = require('path');
 
 // @desc    Fetch list of secure documents
 // @route   GET /api/documents
@@ -22,7 +24,7 @@ exports.uploadDocument = async (req, res) => {
       return res.status(400).json({ message: 'Please upload a file resource.' });
     }
 
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const fileUrl = `/uploads/private/${req.file.filename}`;
     const newDoc = new Document({ fileName, fileUrl, category, notes });
     const savedDoc = await newDoc.save();
     
@@ -41,7 +43,29 @@ exports.deleteDocument = async (req, res) => {
     if (!doc) return res.status(404).json({ message: 'Document asset not found' });
 
     await doc.deleteOne();
-    res.json({ message: 'Document removed cleanly from database' });
+    const filename = path.basename(doc.fileUrl);
+    const directory = doc.fileUrl.includes('/private/') ? 'private' : '';
+    const filePath = path.join(__dirname, '..', 'uploads', directory, filename);
+    await fs.unlink(filePath).catch((error) => {
+      if (error.code !== 'ENOENT') throw error;
+    });
+    res.json({ message: 'Document removed successfully.' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.sendDocumentFile = async (req, res) => {
+  try {
+    const document = await Document.findById(req.params.id);
+    if (!document) return res.status(404).json({ message: 'Document not found.' });
+
+    const filename = path.basename(document.fileUrl);
+    const directory = document.fileUrl.includes('/private/') ? 'private' : '';
+    const filePath = path.join(__dirname, '..', 'uploads', directory, filename);
+    res.sendFile(filePath, (error) => {
+      if (error && !res.headersSent) res.status(error.statusCode || 404).json({ message: 'Document file not found.' });
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
